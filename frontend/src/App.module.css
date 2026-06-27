@@ -1,0 +1,41 @@
+.addListingBtn {
+  margin-bottom: 24px;
+  padding: 12px 24px;
+  font: inherit;
+  font-weight: 500;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.addListingBtn:hover {
+  opacity: 0.9;
+}
+
+.listingsList {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+
+.listingItem {
+  padding: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.listingImages {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.listingImage {
+  width: 120px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
