@@ -23,6 +23,12 @@ def create_listing(db: Session, data: ListingCreate) -> Listing:
 
 def update_listing(db: Session, listing: Listing, data: ListingUpdate) -> Listing:
     update_data = data.model_dump(exclude_unset=True)
+
+    if update_data.get("promotion") is False:
+        update_data["promotion_old_price"] = None
+        update_data["promotion_new_price"] = None
+        update_data["promotion_conditions"] = ""
+
     for field, value in update_data.items():
         setattr(listing, field, value)
     db.commit()
@@ -45,6 +51,7 @@ def search_listings(
     price_max: float | None = None,
     min_guests: int | None = None,
     status: ListingStatus | None = ListingStatus.ACTIVE,
+    promotion: bool | None = None,
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[Listing], int]:
@@ -73,6 +80,9 @@ def search_listings(
 
     if min_guests is not None:
         query = query.filter(Listing.max_guests >= min_guests)
+
+    if promotion is not None:
+        query = query.filter(Listing.promotion == promotion)
 
     total = query.count()
     items = (

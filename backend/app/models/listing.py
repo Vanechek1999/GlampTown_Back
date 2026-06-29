@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Integer, Numeric, String, Text, func
+from sqlalchemy import Boolean, DateTime, Enum, Integer, Numeric, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -49,6 +49,15 @@ class Listing(Base):
         default=ListingStatus.DRAFT,
         index=True,
     )
+    promotion: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        index=True,
+    )
+    promotion_old_price: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
+    promotion_new_price: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
+    promotion_conditions: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

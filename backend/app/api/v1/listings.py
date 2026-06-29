@@ -30,6 +30,7 @@ def list_listings(
     price_max: float | None = Query(default=None, ge=0),
     min_guests: int | None = Query(default=None, ge=1),
     status: ListingStatus | None = Query(default=ListingStatus.ACTIVE),
+    promotion: bool | None = Query(default=None),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
@@ -43,6 +44,7 @@ def list_listings(
         price_max=price_max,
         min_guests=min_guests,
         status=status,
+        promotion=promotion,
         page=page,
         page_size=page_size,
     )

@@ -22,12 +22,16 @@ export interface Listing {
   bedrooms: number
   amenities: string[]
   images: string[]
+  promotion: boolean
+  promotion_old_price: string | null
+  promotion_new_price: string | null
+  promotion_conditions: string
   status: string
   created_at: string
   updated_at: string
 }
 
-export interface ListingCreatePayload {
+export interface ListingPayload {
   title: string
   description: string
   price_per_night: number
@@ -38,4 +42,11 @@ export interface ListingCreatePayload {
   max_guests: number
   bedrooms: number
   status: 'draft' | 'active'
+  promotion: boolean
+  promotion_old_price?: number | null
+  promotion_new_price?: number | null
+  promotion_conditions?: string
 }
+
+export type ListingCreatePayload = ListingPayload
+export type ListingUpdatePayload = Partial<ListingPayload>

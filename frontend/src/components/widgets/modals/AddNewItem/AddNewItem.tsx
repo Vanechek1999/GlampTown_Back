@@ -2,16 +2,30 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
-import { createListing, uploadListingImages } from '../../../../api/listings'
+import {
+  createListing,
+  getImageUrl,
+  updateListing,
+  uploadListingImages,
+} from '../../../../api/listings'
+import type { Listing } from '../../../../types/listing'
 import { PROPERTY_TYPES } from '../../../../types/listing'
-import { listingFormSchema, type ListingFormValues } from './schema'
+import {
+  EMPTY_FORM_VALUES,
+  formValuesToPayload,
+  listingFormSchema,
+  listingToFormValues,
+  type ListingFormValues,
+} from './schema'
 import styles from './AddNewItem.module.css'
 
 interface AddNewItemProps {
-  onCreated?: () => void
+  listing?: Listing
+  onSuccess?: () => void
 }
 
-export const AddNewItem = ({ onCreated }: AddNewItemProps) => {
+export const AddNewItem = ({ listing, onSuccess }: AddNewItemProps) => {
+  const isEditMode = Boolean(listing)
   const [previewUrls, setPreviewUrls] = useState<string[]>([])
   const [serverError, setServerError] = useState<string | null>(null)
 
@@ -24,21 +38,15 @@ export const AddNewItem = ({ onCreated }: AddNewItemProps) => {
     formState: { errors, isSubmitting },
   } = useForm<ListingFormValues>({
     resolver: zodResolver(listingFormSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      price_per_night: undefined,
-      city: '',
-      region: '',
-      address: '',
-      property_type: 'cabin',
-      max_guests: 2,
-      bedrooms: 1,
-      images: [],
-    },
+    defaultValues: listing ? listingToFormValues(listing) : EMPTY_FORM_VALUES,
   })
 
   const images = watch('images')
+  const promotionEnabled = watch('promotion')
+
+  useEffect(() => {
+    reset(listing ? listingToFormValues(listing) : EMPTY_FORM_VALUES)
+  }, [listing, reset])
 
   useEffect(() => {
     const urls = images.map((file) => URL.createObjectURL(file))
@@ -62,25 +70,25 @@ export const AddNewItem = ({ onCreated }: AddNewItemProps) => {
     setServerError(null)
 
     try {
-      const listing = await createListing({
-        title: data.title,
-        description: data.description,
-        price_per_night: data.price_per_night,
-        city: data.city,
-        region: data.region,
-        address: data.address,
-        property_type: data.property_type,
-        max_guests: data.max_guests,
-        bedrooms: data.bedrooms,
-        status: 'active',
-      })
+      const payload = formValuesToPayload(data)
 
-      if (data.images.length > 0) {
-        await uploadListingImages(listing.id, data.images)
+      if (isEditMode && listing) {
+        await updateListing(listing.id, payload)
+        if (data.images.length > 0) {
+          await uploadListingImages(listing.id, data.images)
+        }
+      } else {
+        const created = await createListing(payload)
+        if (data.images.length > 0) {
+          await uploadListingImages(created.id, data.images)
+        }
       }
 
-      reset()
-      onCreated?.()
+      if (!isEditMode) {
+        reset(EMPTY_FORM_VALUES)
+      }
+
+      onSuccess?.()
     } catch (error) {
       setServerError(error instanceof Error ? error.message : 'Произошла ошибка')
     }
@@ -181,11 +189,77 @@ export const AddNewItem = ({ onCreated }: AddNewItemProps) => {
           </div>
         </div>
 
+        <div className={styles.promotionSection}>
+          <label className={styles.checkboxLabel}>
+            <input type="checkbox" {...register('promotion')} />
+            Добавить акцию
+          </label>
+
+          {promotionEnabled && (
+            <div className={styles.promotionFields}>
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label htmlFor="promotion_old_price">Старая цена (₽) *</label>
+                  <input
+                    id="promotion_old_price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    {...register('promotion_old_price', { valueAsNumber: true })}
+                  />
+                  {errors.promotion_old_price && (
+                    <span className={styles.error}>{errors.promotion_old_price.message}</span>
+                  )}
+                </div>
+
+                <div className={styles.field}>
+                  <label htmlFor="promotion_new_price">Новая цена (₽) *</label>
+                  <input
+                    id="promotion_new_price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    {...register('promotion_new_price', { valueAsNumber: true })}
+                  />
+                  {errors.promotion_new_price && (
+                    <span className={styles.error}>{errors.promotion_new_price.message}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.field}>
+                <label htmlFor="promotion_conditions">Условия проведения акции *</label>
+                <textarea
+                  id="promotion_conditions"
+                  {...register('promotion_conditions')}
+                  placeholder="Например: действует при бронировании от 3 ночей"
+                />
+                {errors.promotion_conditions && (
+                  <span className={styles.error}>{errors.promotion_conditions.message}</span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className={styles.field}>
           <label htmlFor="images">Фотографии</label>
           <p className={styles.hint}>
-            Необязательно — если не добавить, будет использовано стандартное фото
+            {isEditMode
+              ? 'Можно добавить новые фото — существующие сохранятся'
+              : 'Необязательно — если не добавить, будет использовано стандартное фото'}
           </p>
+
+          {isEditMode && listing && listing.images.length > 0 && (
+            <div className={styles.previews}>
+              {listing.images.map((image) => (
+                <div key={image} className={styles.preview}>
+                  <img src={getImageUrl(image)} alt="Текущее фото" />
+                </div>
+              ))}
+            </div>
+          )}
+
           <input
             id="images"
             type="file"
@@ -217,7 +291,11 @@ export const AddNewItem = ({ onCreated }: AddNewItemProps) => {
         {serverError && <div className={styles.serverError}>{serverError}</div>}
 
         <button className={styles.submit} type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Сохранение...' : 'Добавить объект'}
+          {isSubmitting
+            ? 'Сохранение...'
+            : isEditMode
+              ? 'Сохранить изменения'
+              : 'Добавить объект'}
         </button>
       </form>
     </section>

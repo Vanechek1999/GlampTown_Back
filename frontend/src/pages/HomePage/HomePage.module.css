@@ -25,17 +25,3 @@
   padding: 24px;
   border-top: 1px solid var(--border);
 }
-
-.listingImages {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-
-.listingImage {
-  width: 120px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 8px;
-}

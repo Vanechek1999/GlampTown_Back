@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Listing } from '../../../types/listing'
 import { getImageUrl } from '../../../api/listings'
 import { Text } from '../../shared'
@@ -9,7 +10,7 @@ interface CardProps {
 
 export const Card = ({ item }: CardProps) => {
   return (
-    <div className={styles.container}>
+    <Link to={`/listings/${item.id}`} className={styles.container}>
       <div className={styles.images}>
         {item.images.map((image) => (
           <img
@@ -36,6 +37,6 @@ export const Card = ({ item }: CardProps) => {
           </Text>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

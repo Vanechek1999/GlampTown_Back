@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.listing import ListingStatus, PropertyType
 
@@ -20,6 +20,26 @@ class ListingBase(BaseModel):
     latitude: Decimal | None = Field(default=None, ge=-90, le=90)
     longitude: Decimal | None = Field(default=None, ge=-180, le=180)
     status: ListingStatus = ListingStatus.DRAFT
+    promotion: bool = False
+    promotion_old_price: Decimal | None = Field(default=None, gt=0, max_digits=10, decimal_places=2)
+    promotion_new_price: Decimal | None = Field(default=None, gt=0, max_digits=10, decimal_places=2)
+    promotion_conditions: str = Field(default="", max_length=2000)
+
+    @model_validator(mode="after")
+    def validate_promotion(self) -> "ListingBase":
+        if not self.promotion:
+            return self
+
+        if self.promotion_old_price is None:
+            raise ValueError("Укажите старую цену для акции")
+        if self.promotion_new_price is None:
+            raise ValueError("Укажите новую цену для акции")
+        if self.promotion_new_price >= self.promotion_old_price:
+            raise ValueError("Новая цена должна быть меньше старой")
+        if not self.promotion_conditions.strip():
+            raise ValueError("Укажите условия проведения акции")
+
+        return self
 
 
 class ListingCreate(ListingBase):
@@ -40,6 +60,26 @@ class ListingUpdate(BaseModel):
     latitude: Decimal | None = Field(default=None, ge=-90, le=90)
     longitude: Decimal | None = Field(default=None, ge=-180, le=180)
     status: ListingStatus | None = None
+    promotion: bool | None = None
+    promotion_old_price: Decimal | None = Field(default=None, gt=0, max_digits=10, decimal_places=2)
+    promotion_new_price: Decimal | None = Field(default=None, gt=0, max_digits=10, decimal_places=2)
+    promotion_conditions: str | None = Field(default=None, max_length=2000)
+
+    @model_validator(mode="after")
+    def validate_promotion(self) -> "ListingUpdate":
+        if self.promotion is not True:
+            return self
+
+        if self.promotion_old_price is None:
+            raise ValueError("Укажите старую цену для акции")
+        if self.promotion_new_price is None:
+            raise ValueError("Укажите новую цену для акции")
+        if self.promotion_new_price >= self.promotion_old_price:
+            raise ValueError("Новая цена должна быть меньше старой")
+        if self.promotion_conditions is not None and not self.promotion_conditions.strip():
+            raise ValueError("Укажите условия проведения акции")
+
+        return self
 
 
 class ListingRead(ListingBase):

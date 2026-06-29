@@ -1,0 +1,105 @@
+.page {
+  padding: 24px;
+  text-align: left;
+}
+
+.backLink {
+  display: inline-block;
+  margin-bottom: 24px;
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 16px;
+  transition: opacity 0.2s;
+}
+
+.backLink:hover {
+  opacity: 0.8;
+}
+
+.gallery {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.galleryImage {
+  width: 100%;
+  max-width: 400px;
+  height: 260px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.amenities {
+  margin-top: 8px;
+}
+
+.amenitiesList {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.editBtn,
+.deleteBtn {
+  padding: 10px 20px;
+  font: inherit;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.editBtn {
+  color: #fff;
+  background: var(--accent);
+}
+
+.deleteBtn {
+  color: #fff;
+  background: #e53e3e;
+}
+
+.editBtn:hover:not(:disabled),
+.deleteBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.editBtn:disabled,
+.deleteBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.promotionPrice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.oldPrice {
+  text-decoration: line-through;
+}
